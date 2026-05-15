@@ -9,6 +9,12 @@ use common\components\TapPayments;
 /* @var $this yii\web\View */
 /* @var $subscription common\models\Subscription */
 /* @var $store common\models\Restaurant */
+
+$rawStoreDomain = trim((string) $store->restaurant_domain);
+$storeName = Html::encode($store->name);
+$storeHref = preg_match('/^https?:\/\//i', $rawStoreDomain) ? Html::encode($rawStoreDomain) : null;
+$planName = Html::encode($subscription->plan->name);
+$ownerGreetingName = Html::encode($store->owner_first_name ? $store->owner_first_name : $store->name);
 ?>
 
 
@@ -16,7 +22,7 @@ use common\components\TapPayments;
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
       <head>
         <title>
-          Your store <?=  $store->name ?> has been upgraded to our <?= $subscription->plan->name ?>
+          Your store <?=  $storeName ?> has been upgraded to our <?= $planName ?>
         </title>
         <!--[if !mso]><!-- -->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -225,7 +231,7 @@ use common\components\TapPayments;
       <div
          style="font-family:Helvetica;font-size:21px;font-weight:900;line-height:24px;text-align:left;color:#ffffff;"
       >
-        <?= $subscription->plan->name ?>
+        <?= $planName ?>
       </div>
 
                       </td>
@@ -304,7 +310,7 @@ use common\components\TapPayments;
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
       >
-        Hi <?= $store->owner_first_name ? $store->owner_first_name : $store->name ?>,
+        Hi <?= $ownerGreetingName ?>,
       </div>
 
               </td>
@@ -332,7 +338,7 @@ use common\components\TapPayments;
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
       >
-        Your store <a href='<?= $store->restaurant_domain ?>' style='color:#2F80ED; text-decoration:none;'><?= $store->name ?></a> has been upgraded to our <?= $subscription->plan->name ?>, with an expiry date of <span style='color:#E16563'><?= date('F d, Y', strtotime($subscription->subscription_end_at)) ?></span>.
+        Your store <?php if ($storeHref): ?><a href='<?= $storeHref ?>' style='color:#2F80ED; text-decoration:none;'><?= $storeName ?></a><?php else: ?><span style='color:#2F80ED; text-decoration:none;'><?= $storeName ?></span><?php endif; ?> has been upgraded to our <?= $planName ?>, with an expiry date of <span style='color:#E16563'><?= date('F d, Y', strtotime($subscription->subscription_end_at)) ?></span>.
       </div>
 
               </td>

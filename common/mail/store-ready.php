@@ -9,8 +9,13 @@ use common\models\Restaurant;
 /* @var $subscription common\models\Subscription */
 /* @var $store common\models\Restaurant */
 
-$store_domain = $store->restaurant_domain;
 $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id=' . $store->restaurant_uuid;
+$rawStoreDomain = trim((string) $store->restaurant_domain);
+$storeName = Html::encode($store->name);
+$storeDomain = Html::encode($rawStoreDomain);
+$storeHref = preg_match('/^https?:\/\//i', $rawStoreDomain) ? Html::encode($rawStoreDomain) : null;
+$customDomainHref = Html::encode($customDomainUrl);
+$ownerGreetingName = Html::encode($store->owner_first_name ? $store->owner_first_name : $store->name);
 
 ?>
 
@@ -20,7 +25,7 @@ $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id='
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
       <head>
         <title>
-          Your store <?= $store->name ?> is now ready
+          Your store <?= $storeName ?> is now ready
         </title>
         <!--[if !mso]><!-- -->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -308,7 +313,7 @@ $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id='
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
       >
-        Hi <?= $store->owner_first_name ? $store->owner_first_name : $store->name ?>,
+        Hi <?= $ownerGreetingName ?>,
       </div>
 
               </td>
@@ -322,7 +327,7 @@ $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id='
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
       >
-        Your store <b><?= $store->name ?></b> is now ready. Check it out on
+        Your store <b><?= $storeName ?></b> is now ready. Check it out on
       </div>
 
               </td>
@@ -336,9 +341,15 @@ $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id='
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:18px;line-height:24px;text-align:left;color:#000000;"
       >
-        <a href='<?= $store->restaurant_domain ?>' style='color:#2B546A; text-decoration: none;'>
-                        <b><?= $store->restaurant_domain ?></b>
+        <?php if ($storeHref): ?>
+        <a href='<?= $storeHref ?>' style='color:#2B546A; text-decoration: none;'>
+                        <b><?= $storeDomain ?></b>
                         </a>
+        <?php else: ?>
+        <span style='color:#2B546A; text-decoration: none;'>
+                        <b><?= $storeDomain ?></b>
+                        </span>
+        <?php endif; ?>
       </div>
 
               </td>
@@ -356,11 +367,19 @@ $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id='
           <td
              align="center" bgcolor="#2B546A" role="presentation" style="border:none;border-radius:5px;cursor:auto;padding:10px 25px;background:#2B546A;" valign="middle"
           >
+            <?php if ($storeHref): ?>
             <a
-               href="<?= $store->restaurant_domain ?>" style="background:#2B546A;color:#ffffff;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;line-height:120%;Margin:0;text-decoration:none;text-transform:none;" target="_blank"
+               href="<?= $storeHref ?>" style="background:#2B546A;color:#ffffff;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;line-height:120%;Margin:0;text-decoration:none;text-transform:none;" target="_blank"
             >
               Visit Website
             </a>
+            <?php else: ?>
+            <span
+               style="background:#2B546A;color:#ffffff;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;line-height:120%;Margin:0;text-decoration:none;text-transform:none;"
+            >
+              Visit Website
+            </span>
+            <?php endif; ?>
           </td>
         </tr>
       </table>
@@ -376,7 +395,7 @@ $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id='
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
       >
-        You are also able to replace the above url with your own <a href='<?= $customDomainUrl ?>' style='color:#2B546A; text-decoration:none;'><b>custom domain</b></a>.
+        You are also able to replace the above url with your own <a href='<?= $customDomainHref ?>' style='color:#2B546A; text-decoration:none;'><b>custom domain</b></a>.
       </div>
 
               </td>
