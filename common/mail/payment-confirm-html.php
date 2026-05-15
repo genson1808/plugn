@@ -7,6 +7,54 @@ use common\models\BankDiscount;
 
 /* @var $this yii\web\View */
 /* @var $order common\models\Order */
+
+$customerName = Html::encode($order->customer_name);
+$customerPhoneNumber = Html::encode($order->customer_phone_number);
+$orderUuid = Html::encode($order->order_uuid);
+$rawRestaurantDomain = trim((string) $order->restaurant->restaurant_domain);
+$trackingHref = preg_match('/^https?:\/\//i', $rawRestaurantDomain)
+    ? Html::encode(rtrim($rawRestaurantDomain, '/') . '/order-status/' . rawurlencode((string) $order->order_uuid))
+    : null;
+$paymentMethodName = Html::encode($order->getPaymentMethodName());
+$paymentStatus = $order->payment ? Html::encode($order->payment->payment_current_status) : '';
+$paymentGatewayOrderId = $order->payment ? Html::encode($order->payment->payment_gateway_order_id) : '';
+$paymentGatewayTransactionId = $order->payment ? Html::encode($order->payment->payment_gateway_transaction_id) : '';
+$deliveryAddressParts = [];
+
+if ($order->order_mode == Order::ORDER_MODE_DELIVERY) {
+    if ($order->area_id) {
+        $deliveryAddressParts[] = 'Block ' . $order->block;
+        $deliveryAddressParts[] = 'Street ' . $order->street;
+        if ($order->avenue != null) {
+            $deliveryAddressParts[] = 'Avenue ' . $order->avenue;
+        }
+        if (strtolower($order->unit_type) != Order::UNIT_TYPE_HOUSE && $order->floor != null) {
+            $deliveryAddressParts[] = 'Floor ' . $order->floor;
+        }
+        if (strtolower($order->unit_type) == Order::UNIT_TYPE_APARTMENT && $order->apartment != null) {
+            $deliveryAddressParts[] = 'Apartment ' . $order->apartment;
+        }
+        if (strtolower($order->unit_type) == Order::UNIT_TYPE_OFFICE && $order->office != null) {
+            $deliveryAddressParts[] = 'Office No. ' . $order->office;
+        }
+        $deliveryAddressParts[] = strtolower($order->unit_type) == Order::UNIT_TYPE_HOUSE
+            ? 'House No. ' . $order->house_number
+            : 'Building ' . $order->house_number;
+        $deliveryAddressParts[] = $order->area_name;
+        $deliveryAddressParts[] = $order->area->city->city_name;
+        $deliveryAddressParts[] = $order->area->country->country_name;
+    } else if ($order->shipping_country_id) {
+        $deliveryAddressParts[] = $order->address_1;
+        $deliveryAddressParts[] = $order->address_2;
+        $deliveryAddressParts[] = $order->postalcode;
+        $deliveryAddressParts[] = $order->city;
+        $deliveryAddressParts[] = $order->country->country_name;
+    }
+}
+
+$deliveryAddress = Html::encode(implode(', ', array_filter($deliveryAddressParts, static function ($part) {
+    return $part !== null && $part !== '';
+})));
 ?>
 
 
@@ -126,7 +174,7 @@ use common\models\BankDiscount;
                                                                             <tr>
                                                                                 <td align="center" style="font-size:0px;padding:10px 25px;padding-top:25px;padding-bottom:10px;word-break:break-word;">
                                                                                     <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:center;color:#000000;">Hello
-                                                                                        <?= $order->customer_name ?>,</div>
+                                                                                        <?= $customerName ?>,</div>
                                                                                 </td>
                                                                             </tr>
                                                                             <tr>
@@ -138,7 +186,7 @@ use common\models\BankDiscount;
                                                                                 <td align="center" vertical-align="middle" style="font-size:0px;padding:10px 25px;padding-top:8px;padding-right:5px;padding-bottom:23px;padding-left:0px;word-break:break-word;">
                                                                                     <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                                                                         <tr>
-                                                                                            <td align="center" bgcolor="#ffffff" role="presentation" style="border:1px solid black;border-radius:5px;cursor:auto;mso-padding-alt:10px 25px;background:#ffffff;" valign="middle"><a href="<?= $order->restaurant->restaurant_domain . '/order-status/' . $order->order_uuid ?>" style="display:inline-block;background:#ffffff;color:#000000;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:5px;" target="_blank">Track your order</a></td>
+                                                                                            <td align="center" bgcolor="#ffffff" role="presentation" style="border:1px solid black;border-radius:5px;cursor:auto;mso-padding-alt:10px 25px;background:#ffffff;" valign="middle"><?php if ($trackingHref): ?><a href="<?= $trackingHref ?>" style="display:inline-block;background:#ffffff;color:#000000;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:5px;" target="_blank">Track your order</a><?php else: ?><span style="display:inline-block;background:#ffffff;color:#000000;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;font-weight:bold;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:5px;">Track your order</span><?php endif; ?></td>
                                                                                         </tr>
                                                                                     </table>
                                                                                 </td>
@@ -169,7 +217,7 @@ use common\models\BankDiscount;
                                                                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                                                                             <tr>
                                                                                 <td align="center" style="font-size:0px;padding:10px 25px;padding-top:15px;padding-bottom:6px;word-break:break-word;">
-                                                                                    <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:18px;line-height:24px;text-align:center;color:#000000;">Order #<?= $order->order_uuid ?>
+                                                                                    <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:18px;line-height:24px;text-align:center;color:#000000;">Order #<?= $orderUuid ?>
                                                                                     </div>
                                                                                 </td>
                                                                             </tr>
@@ -183,15 +231,15 @@ use common\models\BankDiscount;
                                                                                             ?>
                                                                                             <tr>
                                                                                                 <td style="padding: 0 15px; padding-top:10px; width: 34px; vertical-align:top;">
-                                                                                                    <?= $orderItem->qty ?>x
+                                                                                                    <?= Html::encode($orderItem->qty) ?>x
                                                                                                 </td>
                                                                                                 <td style="width: 70%; padding: 0 15px; padding-top:10px; vertical-align:top;">
                                                                                                     <p style="margin:0;padding:0;">
-                                                                                                        <?= $orderItem->item_name . ' ' . $orderItem->item_name_ar ?>
+                                                                                                        <?= Html::encode($orderItem->item_name . ' ' . $orderItem->item_name_ar) ?>
                                                                                                     </p>
                                                                                                     <?php foreach ($orderItem->getOrderItemExtraOptions()->all() as $extraOption) { ?>
                                                                                                         <p style="margin:0;padding:0; color:#828585;">
-                                                                                                            <?= $extraOption->extra_option_name . ' ' . $extraOption->extra_option_name_ar ?>
+                                                                                                            <?= Html::encode($extraOption->extra_option_name . ' ' . $extraOption->extra_option_name_ar) ?>
                                                                                                         </p>
                                                                                                     <?php } ?>
                                                                                                 </td>
@@ -384,31 +432,12 @@ use common\models\BankDiscount;
                                                                                   <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                                                                                       <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;line-height:24px;text-align:left;color:#828585;">
                                                                                         <div style="display:block">
-                                                                                          <?= $order->customer_name ?>
+                                                                                          <?= $customerName ?>
                                                                                         </div>
                                                                                         <div style="display:block">
-                                                                                          <?= $order->customer_phone_number ?>
+                                                                                          <?= $customerPhoneNumber ?>
                                                                                         </div>
-                                                                                        <?php
-                                                                                           if($order->area_id){
-                                                                                             echo 'Block '  . $order->block . ', ';
-                                                                                             echo 'Street ' . $order->street . ', ';
-                                                                                             echo $order->avenue != null ? 'Avenue ' . $order->avenue . ', ' : '';
-                                                                                             echo strtolower($order->unit_type) != Order::UNIT_TYPE_HOUSE && $order->floor != null ? 'Floor ' . $order->floor . ', ' : '';
-                                                                                             echo strtolower($order->unit_type) == Order::UNIT_TYPE_APARTMENT && $order->apartment != null ? 'Apartment ' . $order->apartment . ', ' : '';
-                                                                                             echo strtolower($order->unit_type) == Order::UNIT_TYPE_OFFICE && $order->office != null ? 'Office No. ' . $order->office . ', ' : '';
-                                                                                             echo strtolower($order->unit_type) == Order::UNIT_TYPE_HOUSE ? 'House No. ' . $order->house_number . ', ' : 'Building ' . $order->house_number . ', ';
-                                                                                             echo $order->area_name . ', ';
-                                                                                             echo $order->area->city->city_name . ', ';
-                                                                                             echo $order->area->country->country_name;
-                                                                                           } else if ($order->shipping_country_id){
-                                                                                             echo $order->address_1. ', ';
-                                                                                             echo $order->address_2. ', ';
-                                                                                             echo $order->postalcode. ', ';
-                                                                                             echo $order->city. ', ';
-                                                                                             echo $order->country->country_name;
-                                                                                           }
-                                                                                         ?>
+                                                                                        <?= $deliveryAddress ?>
 
                                                                                       </div>
                                                                                   </td>
@@ -425,14 +454,14 @@ use common\models\BankDiscount;
                                                                                     <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                                                                                         <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;line-height:24px;text-align:left;color:#828585;">
                                                                                           <div style="display:block">
-                                                                                              <?= $order->pickupLocation->business_location_name ?>,
-                                                                                              <?= $order->pickupLocation->country->country_name ?>
+                                                                                              <?= Html::encode($order->pickupLocation->business_location_name) ?>,
+                                                                                              <?= Html::encode($order->pickupLocation->country->country_name) ?>
                                                                                            </div>
                                                                                             <div style="display:block">
-                                                                                              <?= $order->customer_name ?>
+                                                                                              <?= $customerName ?>
                                                                                             </div>
                                                                                             <div style="display:block">
-                                                                                              <?= $order->customer_phone_number ?>
+                                                                                              <?= $customerPhoneNumber ?>
                                                                                             </div>
                                                                                       </div>
                                                                                     </td>
@@ -458,7 +487,7 @@ use common\models\BankDiscount;
                                                                                 <td align="left" style="font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0;word-break:break-word;">
                                                                                     <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;line-height:24px;text-align:left;color:#828585;">
                                                                                         Payment mode:
-                                                                                        <?php echo $order->getPaymentMethodName(); ?></div>
+                                                                                        <?= $paymentMethodName ?></div>
                                                                                 </td>
                                                                             </tr>
 
@@ -466,21 +495,21 @@ use common\models\BankDiscount;
                                                                                 <tr>
                                                                                     <td align="left" style="font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0;word-break:break-word;">
                                                                                         <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;line-height:24px;text-align:left;color:#828585;">
-                                                                                            Result: <?= $order->payment->payment_current_status ?>
+                                                                                            Result: <?= $paymentStatus ?>
                                                                                         </div>
                                                                                     </td>
                                                                                 </tr>
                                                                                 <tr>
                                                                                     <td align="left" style="font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0;word-break:break-word;">
                                                                                         <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;line-height:24px;text-align:left;color:#828585;">
-                                                                                            Ref: <?= $order->payment->payment_gateway_order_id ?>
+                                                                                            Ref: <?= $paymentGatewayOrderId ?>
                                                                                         </div>
                                                                                     </td>
                                                                                 </tr>
                                                                                 <tr>
                                                                                     <td align="left" style="font-size:0px;padding:10px 25px;padding-top:0;padding-bottom:0;word-break:break-word;">
                                                                                         <div style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:15px;line-height:24px;text-align:left;color:#828585;">
-                                                                                            Charge: <?= $order->payment->payment_gateway_transaction_id ?>
+                                                                                            Charge: <?= $paymentGatewayTransactionId ?>
                                                                                         </div>
                                                                                     </td>
                                                                                 </tr>
