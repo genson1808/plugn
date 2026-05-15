@@ -11,7 +11,11 @@ use yii\grid\GridView;
 $this->params['restaurant_uuid'] = $restaurant->restaurant_uuid;
 $this->title = 'Dashboard';
 
-$currencyCode = $restaurant->currency->code;
+$currencyCode = (string) $restaurant->currency->code;
+$currencyCodeJson = json_encode($currencyCode, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+$rawRestaurantDomain = trim((string) $restaurant->restaurant_domain);
+$restaurantDomainText = Html::encode($rawRestaurantDomain);
+$restaurantDomainHref = preg_match('/^https?:\/\//i', $rawRestaurantDomain) ? Html::encode($rawRestaurantDomain) : null;
 
 $js = "
  $(document).ready(function(){
@@ -31,7 +35,7 @@ $this->registerJs($js);
 <!-- <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script> -->
 <script type="text/javascript">
 
-    var currency_code = "<?= $currencyCode ?>";
+    var currency_code = <?= $currencyCodeJson ?>;
 
     $(window).on('load', function () {
 
@@ -495,7 +499,7 @@ $this->registerJs($js);
     </div>
 
       <?php }
-    if(str_contains($restaurant->restaurant_domain, '.plugn.store') &&   $restaurant->has_deployed == 1 ){ ?>
+    if(str_contains($rawRestaurantDomain, '.plugn.store') &&   $restaurant->has_deployed == 1 ){ ?>
     <div class="card">
         <div class="card-body">
             <div class="row">
@@ -503,7 +507,7 @@ $this->registerJs($js);
                     <div>
                         <h3><span>Strengthen your brand with a custom domain</span></h3>
                     </div>
-                    <p>Your current domain is <a target="_blank" href="<?= $restaurant->restaurant_domain ?>"> <?= $restaurant->restaurant_domain ?> </a> but you can add a custom domain to help customers find your online store.</p>
+                    <p>Your current domain is <?php if ($restaurantDomainHref): ?><a target="_blank" rel="noopener noreferrer" href="<?= $restaurantDomainHref ?>"> <?= $restaurantDomainText ?> </a><?php else: ?><span><?= $restaurantDomainText ?></span><?php endif; ?> but you can add a custom domain to help customers find your online store.</p>
                     <div>
                         <div>
                             <div>
