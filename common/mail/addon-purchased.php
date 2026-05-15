@@ -1,9 +1,14 @@
 <?php
+use yii\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $addon common\models\Addon */
 /* @var $store common\models\Restaurant */
 /* @var $paymentRecord common\models\AddonPayment */
+$addonName = Html::encode($addon->name);
+$storeName = Html::encode($store->name);
+$storeOwnerName = Html::encode($store->owner_first_name ? $store->owner_first_name : $store->name);
+$storeDomainHref = Html::encode($store->restaurant_domain);
 ?>
 
 
@@ -11,7 +16,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <title>
-        Purchase for <?= $addon->name ?>
+        Purchase for <?= $addonName ?>
     </title>
     <!--[if !mso]><!-- -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -220,7 +225,7 @@
                                                                 <div
                                                                     style="font-family:Helvetica;font-size:21px;font-weight:900;line-height:24px;text-align:left;color:#ffffff;"
                                                                 >
-                                                                    <?= $addon->name ?>
+                                                                    <?= $addonName ?>
                                                                 </div>
 
                                                             </td>
@@ -299,7 +304,7 @@
                                                     <div
                                                         style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
                                                     >
-                                                        Hi <?= $store->owner_first_name ? $store->owner_first_name : $store->name ?>,
+                                                        Hi <?= $storeOwnerName ?>,
                                                     </div>
 
                                                 </td>
@@ -327,7 +332,7 @@
                                                     <div
                                                         style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
                                                     >
-                                                        Addon <?= $addon->name ?> has been added in your store <a href='<?= $store->restaurant_domain ?>' style='color:#2F80ED; text-decoration:none;'><?= $store->name ?></a></span>.
+                                                        Addon <?= $addonName ?> has been added in your store <a href='<?= $storeDomainHref ?>' style='color:#2F80ED; text-decoration:none;'><?= $storeName ?></a></span>.
                                                     </div>
 
                                                 </td>
