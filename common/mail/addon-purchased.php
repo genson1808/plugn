@@ -1,14 +1,17 @@
 <?php
+
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
 /* @var $addon common\models\Addon */
 /* @var $store common\models\Restaurant */
 /* @var $paymentRecord common\models\AddonPayment */
+
 $addonName = Html::encode($addon->name);
+$rawStoreDomain = trim((string) $store->restaurant_domain);
 $storeName = Html::encode($store->name);
-$storeOwnerName = Html::encode($store->owner_first_name ? $store->owner_first_name : $store->name);
-$storeDomainHref = Html::encode($store->restaurant_domain);
+$storeHref = preg_match('/^https?:\/\//i', $rawStoreDomain) ? Html::encode($rawStoreDomain) : null;
+$ownerGreetingName = Html::encode($store->owner_first_name ? $store->owner_first_name : $store->name);
 ?>
 
 
@@ -304,7 +307,7 @@ $storeDomainHref = Html::encode($store->restaurant_domain);
                                                     <div
                                                         style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
                                                     >
-                                                        Hi <?= $storeOwnerName ?>,
+                                                        Hi <?= $ownerGreetingName ?>,
                                                     </div>
 
                                                 </td>
@@ -332,7 +335,7 @@ $storeDomainHref = Html::encode($store->restaurant_domain);
                                                     <div
                                                         style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
                                                     >
-                                                        Addon <?= $addonName ?> has been added in your store <a href='<?= $storeDomainHref ?>' style='color:#2F80ED; text-decoration:none;'><?= $storeName ?></a></span>.
+                                                        Addon <?= $addonName ?> has been added in your store <?php if ($storeHref): ?><a href='<?= $storeHref ?>' style='color:#2F80ED; text-decoration:none;'><?= $storeName ?></a><?php else: ?><span style='color:#2F80ED; text-decoration:none;'><?= $storeName ?></span><?php endif; ?></span>.
                                                     </div>
 
                                                 </td>

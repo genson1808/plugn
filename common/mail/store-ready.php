@@ -9,13 +9,13 @@ use common\models\Restaurant;
 /* @var $subscription common\models\Subscription */
 /* @var $store common\models\Restaurant */
 
-$store_domain = $store->restaurant_domain;
 $customDomainUrl = Yii::$app->params['frontendUrl'] . '/site/connect-domain?id=' . $store->restaurant_uuid;
+$rawStoreDomain = trim((string) $store->restaurant_domain);
 $storeName = Html::encode($store->name);
-$storeOwnerName = Html::encode($store->owner_first_name ? $store->owner_first_name : $store->name);
-$storeDomainText = Html::encode($store_domain);
-$storeDomainHref = Html::encode($store_domain);
+$storeDomain = Html::encode($rawStoreDomain);
+$storeHref = preg_match('/^https?:\/\//i', $rawStoreDomain) ? Html::encode($rawStoreDomain) : null;
 $customDomainHref = Html::encode($customDomainUrl);
+$ownerGreetingName = Html::encode($store->owner_first_name ? $store->owner_first_name : $store->name);
 
 ?>
 
@@ -313,7 +313,7 @@ $customDomainHref = Html::encode($customDomainUrl);
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;text-align:left;color:#000000;"
       >
-        Hi <?= $storeOwnerName ?>,
+        Hi <?= $ownerGreetingName ?>,
       </div>
 
               </td>
@@ -341,9 +341,15 @@ $customDomainHref = Html::encode($customDomainUrl);
       <div
          style="font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:18px;line-height:24px;text-align:left;color:#000000;"
       >
-        <a href='<?= $storeDomainHref ?>' style='color:#2B546A; text-decoration: none;'>
-                        <b><?= $storeDomainText ?></b>
+        <?php if ($storeHref): ?>
+        <a href='<?= $storeHref ?>' style='color:#2B546A; text-decoration: none;'>
+                        <b><?= $storeDomain ?></b>
                         </a>
+        <?php else: ?>
+        <span style='color:#2B546A; text-decoration: none;'>
+                        <b><?= $storeDomain ?></b>
+                        </span>
+        <?php endif; ?>
       </div>
 
               </td>
@@ -361,11 +367,19 @@ $customDomainHref = Html::encode($customDomainUrl);
           <td
              align="center" bgcolor="#2B546A" role="presentation" style="border:none;border-radius:5px;cursor:auto;padding:10px 25px;background:#2B546A;" valign="middle"
           >
+            <?php if ($storeHref): ?>
             <a
-               href="<?= $storeDomainHref ?>" style="background:#2B546A;color:#ffffff;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;line-height:120%;Margin:0;text-decoration:none;text-transform:none;" target="_blank"
+               href="<?= $storeHref ?>" style="background:#2B546A;color:#ffffff;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;line-height:120%;Margin:0;text-decoration:none;text-transform:none;" target="_blank"
             >
               Visit Website
             </a>
+            <?php else: ?>
+            <span
+               style="background:#2B546A;color:#ffffff;font-family:Proxima Nova, Arial, Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;line-height:120%;Margin:0;text-decoration:none;text-transform:none;"
+            >
+              Visit Website
+            </span>
+            <?php endif; ?>
           </td>
         </tr>
       </table>
